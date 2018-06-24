@@ -27,7 +27,7 @@ function NewConnection(socket) {
     //Combine mods+viewers in one array
     currentViewers.push.apply(currentViewers, newData.data.chatters.moderators);
     //apply influence income
-
+    client.action("vinny_the_blind", currentViewers);
   }
 }
 
@@ -81,7 +81,7 @@ function SearchDB(user) {
 
 function SearchCallBack(found, data, func) {
   if (!found) {
-    console.log("\nNot found, registering");
+    console.log("\nNot found, registering:" + data);
     Register(user);
     client.action("vinny_the_blind", "Welcome @" + data.username + "!");
   } else client.action("vinny_the_blind", "Already registered " + data.username + "!");

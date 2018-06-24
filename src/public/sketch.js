@@ -59,6 +59,7 @@ function StartInfluenceTicks() {
 }
 function GotUsers(data) {
 	socket.emit('influenceTick', data);
+	console.log(data);
 }
 
 function MoveLeft(circle) {
