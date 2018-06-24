@@ -82,7 +82,7 @@ function SearchDB(user) {
 function SearchCallBack(found, data, func) {
   if (!found) {
     console.log("\nNot found, registering:" + data);
-    Register(user);
+    Register(data);
     client.action("vinny_the_blind", "Welcome @" + data.username + "!");
   } else client.action("vinny_the_blind", "Already registered " + data.username + "!");
 }
