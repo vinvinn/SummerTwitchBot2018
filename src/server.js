@@ -19,6 +19,7 @@ io.sockets.on('connection', NewConnection);
 function NewConnection(socket) {
   console.log('new connection ' + socket.id);
   mainSocket = socket;
+
   mainSocket.on('influenceTick', RecieveInfluenceTick);
   function RecieveInfluenceTick(data) {
     console.log("Recieved Influence Tick!");
@@ -26,8 +27,12 @@ function NewConnection(socket) {
     currentViewers = newData.data.chatters.viewers;
     //Combine mods+viewers in one array
     currentViewers.push.apply(currentViewers, newData.data.chatters.moderators);
-    //apply influence income
-    client.action("vinny_the_blind", currentViewers);
+    var numViewers = currentViewers.length;
+    //TODO:apply influence income
+    for(var i = 0; i< numViewers; i++) {
+      console.log(currentViewers[i]);
+    }
+    
   }
 }
 
@@ -59,48 +64,56 @@ client.on('chat', function(channel, user, message, self){
   if (message === "left" || message === "right" || message === "up" || message === "down") {
     moveCircleRequest(message);
     client.action("vinny_the_blind", message + " it is!");
-  } else if (message === "register") SearchDB(user);
+  } else if (message === "register") SearchDBForUser(user, Register);
   else if (message == "myinfluence") {
     client.whisper(user.username, "Your message");
   }
 })
 
-function SearchDB(user) {
+function SearchDBForUser(user, func) {
   mongo.connect(dbURL, function(err, db) {
     assert.equal(null, err);
     var data = db.collection('users').findOne({"username":user.username},
     function(err, doc) {
-      if (doc == null) SearchCallBack(false, user);
-      else if (user.username == doc.username) SearchCallBack(true, user);
-      else SearchCallBack(false, user);
+      if (doc == null) SearchCallBack(false, user, func);
+      else if (user.username == doc.username) SearchCallBack(true, user, func);
+      else SearchCallBack(false, user, func);
       db.close()
-
     });
   });
 }
-
+//This CallBack is used to ensure the desired function waits for the response from the db
 function SearchCallBack(found, data, func) {
-  if (!found) {
-    console.log("\nNot found, registering:" + data);
-    Register(data);
-    client.action("vinny_the_blind", "Welcome @" + data.username + "!");
-  } else client.action("vinny_the_blind", "Already registered " + data.username + "!");
+  func(data, found);
 }
 
-function Register(user) {
+function GiveInfluence(user) {//Not Functional Yet
   mongo.connect(dbURL, function(err, db) {
     assert.equal(null, err);
-    var userInfo = {
-      username: user.username,
-      userID: user.user_id,
-      influence: 20,
-      influenceIncome: 1
-    }
     db.collection('users').insertOne(userInfo, function(err, res){
       assert.equal(null, err);
       db.close();
     });
   });
+}
+function Register(user, found) {
+  if (!found) {
+    console.log("\nNot found, registering:" + user.username);
+    mongo.connect(dbURL, function(err, db) {
+      assert.equal(null, err);
+      var userInfo = {
+        username: user.username,
+        userID: user.user_id,
+        influence: 20,
+        influenceIncome: 1
+      }
+      db.collection('users').insertOne(userInfo, function(err, res){
+        assert.equal(null, err);
+        db.close();
+      });
+    });
+    client.action("vinny_the_blind", "Welcome @" + user.username + "!");
+  } else client.action("vinny_the_blind", "Already registered " + user.username + "!");
 }
 
 client.on('connected', function(address, port) {
