@@ -31,6 +31,7 @@ function NewConnection(socket) {
     //TODO:apply influence income
     for(var i = 0; i< numViewers; i++) {
       console.log(currentViewers[i]);
+      GiveInfluence(currentViewers[i]);
     }
     
   }
@@ -54,9 +55,18 @@ var options = {
 var client = new tmi.client(options);
 client.connect();
 
-client.on('chat', function(channel, user, message, self){
+client.on("whisper", function (from, user, message, self) {
+  if (self) return;
 
+  if (message === "register") SearchDBForUser(user, Register);
+  else if (message == "myinfluence") {
+    client.whisper(user.username, "Your message");
+  }
+});
+
+client.on('chat', function(channel, user, message, self){
   if(self) return;
+
   if(!validator.contains(message, "!")) return
   if(message.charAt(0) === '!') message = message.substr(1);
   if(!validator.isAlpha(message)) return;
@@ -87,23 +97,28 @@ function SearchCallBack(found, data, func) {
   func(data, found);
 }
 
-function GiveInfluence(user) {//Not Functional Yet
+function GiveInfluence(user) {//Now functional as far as I can tell
   mongo.connect(dbURL, function(err, db) {
     assert.equal(null, err);
-    db.collection('users').insertOne(userInfo, function(err, res){
-      assert.equal(null, err);
-      db.close();
-    });
+    db.collection('users').find({"username":user}).snapshot().forEach(
+      function (elem) {
+        db.collection('users').update(
+          { username: user }, //This is our search query 
+            { 
+              $set: { influence: elem.influence + elem.influenceIncome } //the change we want to make
+            }
+        );
+      }
+    );
   });
 }
 function Register(user, found) {
   if (!found) {
-    console.log("\nNot found, registering:" + user.username);
     mongo.connect(dbURL, function(err, db) {
       assert.equal(null, err);
       var userInfo = {
         username: user.username,
-        userID: user.user_id,
+        userID: user.user_id,//User_id is a twitch thing, but it just hasn't worked for me appparently
         influence: 20,
         influenceIncome: 1
       }
@@ -112,8 +127,9 @@ function Register(user, found) {
         db.close();
       });
     });
-    client.action("vinny_the_blind", "Welcome @" + user.username + "!");
-  } else client.action("vinny_the_blind", "Already registered " + user.username + "!");
+    client.whisper(user.username, "Welcome " + user.username + "!");
+  } else client.whisper(user.username, "You've already registered!");
+
 }
 
 client.on('connected', function(address, port) {
