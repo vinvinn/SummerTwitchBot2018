@@ -59,9 +59,7 @@ client.on("whisper", function (from, user, message, self) {
   if (self) return;
 
   if (message === "register") SearchDBForUser(user, Register);
-  else if (message == "myinfluence") {
-    client.whisper(user.username, "Your message");
-  }
+  else if (message === "status") UserStatusUpdate(user);
 });
 
 client.on('chat', function(channel, user, message, self){
@@ -75,9 +73,6 @@ client.on('chat', function(channel, user, message, self){
     moveCircleRequest(message);
     client.action("vinny_the_blind", message + " it is!");
   } else if (message === "register") SearchDBForUser(user, Register);
-  else if (message == "myinfluence") {
-    client.whisper(user.username, "Your message");
-  }
 })
 
 function SearchDBForUser(user, func) {
@@ -95,6 +90,18 @@ function SearchDBForUser(user, func) {
 //This CallBack is used to ensure the desired function waits for the response from the db
 function SearchCallBack(found, data, func) {
   func(data, found);
+}
+
+function UserStatusUpdate(user) {
+  mongo.connect(dbURL, function(err, db) {
+    assert.equal(null, err);
+    var data = db.collection('users').findOne({"username":user.username},
+    function(err, doc) {
+      if (user.username == doc.username) client.whisper(user.username, "Influence: " + doc.influence + "    Income: " + doc.influenceIncome);
+      else client.whisper(user.username, "You aren't registered! Respond with 'register' to do so");
+      db.close()
+    });
+  });
 }
 
 function GiveInfluence(user) {//Now functional as far as I can tell
