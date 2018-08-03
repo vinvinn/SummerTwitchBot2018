@@ -69,10 +69,7 @@ client.on('chat', function(channel, user, message, self){
   if(message.charAt(0) === '!') message = message.substr(1);
   if(!validator.isAlpha(message)) return;
 
-  if (message === "left" || message === "right" || message === "up" || message === "down") {
-    moveCircleRequest(message);
-    client.action("vinny_the_blind", message + " it is!");
-  } else if (message === "register") SearchDBForUser(user, Register);
+  else if (message === "register") SearchDBForUser(user, Register);
 })
 
 function SearchDBForUser(user, func) {
@@ -104,6 +101,68 @@ function UserStatusUpdate(user) {
   });
 }
 
+async function GetTeamPoints(team){
+  let db = await mongo.connect(dbURL);
+    let data = await db.collection("teams").findOne({"name":team});
+    await db.close();
+    return data.points;
+}
+
+function GiveTeamPoints(team, amount) {
+  mongo.connect(dbURL, function(err, db) {
+    assert.equal(null, err);
+    db.collection('teams').find({"name":team}).snapshot().forEach(
+      function (elem) {
+        db.collection('teams').update(
+          { name: team }, //This is our search query 
+            { 
+              $set: { points: elem.points + amount } //the change we want to make
+            }
+        );
+      }
+    );
+  });
+  UpdateTeamPoints();
+}
+
+function UpdateTeamPoints(){
+  var teamPoints = {
+    red: 0,
+    blue: 0,
+    green: 0,
+    yellow: 0
+  };
+
+  Promise.all([
+    GetTeamPoints("yellow").then(function(value) {
+      teamPoints.yellow = value;
+    }, function(reason) {
+      console.log("Promise log: Rejected");
+    }),
+    GetTeamPoints("red").then(function(value) {
+      teamPoints.red = value;
+    }, function(reason) {
+      console.log("Promise log: Rejected");
+    }),
+    GetTeamPoints("blue").then(function(value) {
+      teamPoints.blue = value;
+    }, function(reason) {
+      console.log("Promise log: Rejected");
+    }),
+    GetTeamPoints("green").then(function(value) {
+      teamPoints.green = value;
+    }, function(reason) {
+      console.log("Promise log: Rejected");
+    })
+  ]).then(function() {//This function will run when all 4 previous promises have resolved
+      console.log("Recieved all team poins:\nRed: "+teamPoints.red+"\nBlue: "+teamPoints.blue+"\nGreen: "+teamPoints.green+"\nYellow: "+teamPoints.yellow);
+
+      //Properly emit team point values to the sketch
+      io.sockets.emit('teamPointsUpdate', teamPoints);
+  })
+  
+}
+
 function GiveInfluence(user) {//Now functional as far as I can tell
   mongo.connect(dbURL, function(err, db) {
     assert.equal(null, err);
@@ -119,6 +178,7 @@ function GiveInfluence(user) {//Now functional as far as I can tell
     );
   });
 }
+
 function Register(user, found) {
   if (!found) {
     mongo.connect(dbURL, function(err, db) {

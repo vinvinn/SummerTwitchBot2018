@@ -1,6 +1,13 @@
 var socket;
 var positions;
 
+var teamPoints = {
+	red: 0,
+	blue: 0,
+	green: 0,
+	yellow: 0
+};
+
 var mainCircle = {
 	sizeX: 50,
 	sizeY: 50,
@@ -29,17 +36,26 @@ function setup() {
 			if (direction == "down") MoveDown(mainCircle);
 		}
 	);
+	socket.on('teamPointsUpdate',
+	function(points) {
+		teamPoints.red += points.red;
+		teamPoints.blue += points.blue;
+		teamPoints.green += points.green;
+		teamPoints.yellow += points.yellow;
+	}
+);
 }
 
 function draw() {
   background(220);
 	DrawLines();
 
-	mainCircle.circlePos = positions[mainCircle.gridPos[1]][mainCircle.gridPos[0]];
-
-	ellipse(mainCircle.circlePos[0], mainCircle.circlePos[1], mainCircle.sizeX,mainCircle.sizeY);
+	// /mainCircle.circlePos = positions[mainCircle.gridPos[1]][mainCircle.gridPos[0]];
+	//ellipse(mainCircle.circlePos[0], mainCircle.circlePos[1], mainCircle.sizeX,mainCircle.sizeY);
+	
 	textSize(24);
 	text(timeLeft.toString() + " until next influence", 20, height - 20);
+	DisplayTeams();
 }
 
 
@@ -51,7 +67,7 @@ function StartInfluenceTicks() {
 	function countdown() {
 	  if (timeLeft == 0) {
 	    timeLeft = 10 ;
-			loadJSON("https://tmi.twitch.tv/group/user/vinny_the_blind/chatters", GotUsers, 'jsonp')
+			//loadJSON("https://tmi.twitch.tv/group/user/vinny_the_blind/chatters", GotUsers, 'jsonp')
 	  } else {
 	    timeLeft--;
 	  }
@@ -60,6 +76,20 @@ function StartInfluenceTicks() {
 function GotUsers(data) {
 	socket.emit('influenceTick', data);
 	console.log(data);
+}
+
+function DisplayTeams() {
+	textAlign(CENTER);
+	fill("Red");
+	text("Red\n" + teamPoints.red, width/4, height/4);
+	fill("Blue");
+	text("Blue\n" + teamPoints.blue, 3*width/4, height/4);
+	fill("Green");
+	text("Green\n" + teamPoints.green, width/4, 3*height/4);
+	fill("Yellow");
+	text("Yellow\n" + teamPoints.yellow, 3*width/4, 3*height/4);
+	fill("Black");
+	textAlign(LEFT);
 }
 
 function MoveLeft(circle) {
@@ -80,8 +110,8 @@ function MoveDown(circle) {
 }
 
 function DrawLines() {
-	line(width/3, 0, width/3, height);
-	line(2*width/3, 0, 2*width/3, height);
-	line(0, height/3,width,height/3);
-	line(0, 2*height/3, width, 2*height/3);
+	line(width/2, 0, width/2, height);
+	//line(2*width/3, 0, 2*width/3, height);
+	line(0, height/2,width,height/2);
+	//line(0, 2*height/3, width, 2*height/3);
 }
