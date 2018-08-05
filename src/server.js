@@ -22,18 +22,16 @@ function NewConnection(socket) {
 
   mainSocket.on('influenceTick', RecieveInfluenceTick);
   function RecieveInfluenceTick(data) {
-    console.log("Recieved Influence Tick!");
+    console.log("--Influence Tick--");
     var newData = JSON.parse(JSON.stringify(data));
     currentViewers = newData.data.chatters.viewers;
     //Combine mods+viewers in one array
     currentViewers.push.apply(currentViewers, newData.data.chatters.moderators);
     var numViewers = currentViewers.length;
-    //TODO:apply influence income
+
     for(var i = 0; i< numViewers; i++) {
-      console.log(currentViewers[i]);
       GiveInfluence(currentViewers[i]);
     }
-    
   }
 }
 
@@ -60,6 +58,8 @@ client.on("whisper", function (from, user, message, self) {
 
   if (message === "register") SearchDBForUser(user, Register);
   else if (message === "status") UserStatusUpdate(user);
+  else if (message.startsWith("vote ")) VoteForTeam(user, message);
+  else client.whisper(user.username, "Hey there, I didn't understand that! :) Check the the stream panels for help!");
 });
 
 client.on('chat', function(channel, user, message, self){
@@ -99,6 +99,54 @@ function UserStatusUpdate(user) {
       db.close()
     });
   });
+}
+
+function VoteForTeam(user, message) {
+  var team = message.substr(5);
+  if (team.startsWith("red")) {
+    var points = parseInt(team.substr(4));
+    team = "red";
+  } else if (team.startsWith("blue")) {
+    var points = parseInt(team.substr(5));
+    team = "blue";
+  } else if (team.startsWith("yellow")) {
+    var points = parseInt(team.substr(7));
+    team = "yellow";
+  } else if (team.startsWith("green")) {
+    var points = parseInt(team.substr(6));
+    team = "green";
+  } else {
+    client.whisper(user.username, "Invalid vote comand, try 'vote team points'");
+    return;
+  }
+  if (!points > 0 || points < 0) {
+    client.whisper(user.username, "Invalid influnce value");
+    return;
+  }
+  
+  SufficientInfluenceCheck(user, points).then(function(value) {
+    if(!value) {
+      client.whisper(user.username, "You don't have that much influence!");
+      return;
+    } else {
+      client.whisper(user.username, "Voting " + points + " for " + team +"!");
+      TakeInfluence(user, points);
+      GiveTeamPoints(team, points);
+      UpdateTeamPoints();
+    }
+  }, function(reason) {
+    console.log("Promise log: Rejected for: " + reason);
+    client.whisper(user.username, "Error occured");
+    return;
+  })
+}
+
+async function SufficientInfluenceCheck(user, amount) {
+  let db = await mongo.connect(dbURL);
+    let data = await db.collection("users").findOne({"username":user.username});
+    await db.close();
+    if (data.influence >= amount) return true;
+    return false;
 }
 
 async function GetTeamPoints(team){
@@ -155,12 +203,26 @@ function UpdateTeamPoints(){
       console.log("Promise log: Rejected");
     })
   ]).then(function() {//This function will run when all 4 previous promises have resolved
-      console.log("Recieved all team poins:\nRed: "+teamPoints.red+"\nBlue: "+teamPoints.blue+"\nGreen: "+teamPoints.green+"\nYellow: "+teamPoints.yellow);
-
       //Properly emit team point values to the sketch
       io.sockets.emit('teamPointsUpdate', teamPoints);
   })
   
+}
+
+function TakeInfluence(user, amount) {//Now functional as far as I can tell
+  mongo.connect(dbURL, function(err, db) {
+    assert.equal(null, err);
+    db.collection('users').find({"username":user.username}).snapshot().forEach(
+      function (elem) {
+        db.collection('users').update(
+          { username: user.username }, //This is our search query 
+            { 
+              $set: { influence: elem.influence - amount } //the change we want to make
+            }
+        );
+      }
+    );
+  });
 }
 
 function GiveInfluence(user) {//Now functional as far as I can tell
@@ -200,10 +262,6 @@ function Register(user, found) {
 }
 
 client.on('connected', function(address, port) {
+  UpdateTeamPoints();
   client.action("vinny_the_blind", "Howdy ho neighborooni, it's me, vinvinnBot!");
 })
-
-function moveCircleRequest(direction) {
-  io.sockets.emit('moveRequest', direction);
-  console.log('Moved circle at:  ' + socket.id);
-}
