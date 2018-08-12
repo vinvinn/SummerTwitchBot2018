@@ -1,3 +1,5 @@
+
+
 var socket;
 
 var teamPoints = {
@@ -10,10 +12,10 @@ var teamPoints = {
 function setup() {
   createCanvas(400, 400);
 
-	socket = io.connect('http://localhost:3000');
+	socket = io.connect("http://localhost:3000");
 	StartInfluenceTicks();
 
-	socket.on('teamPointsUpdate',
+	socket.on("teamPointsUpdate",
 	function(points) {
 		teamPoints.red = points.red;
 		teamPoints.blue = points.blue;
@@ -24,7 +26,7 @@ function setup() {
 }
 
 function draw() {
-  	background(220);
+	background(220);
 	DrawLines();
 
 	textSize(24);
@@ -38,7 +40,7 @@ function StartInfluenceTicks() {
 	function countdown() {
 	  if (timeLeft == 0) {
 	    timeLeft = 20 ;
-		loadJSON("https://tmi.twitch.tv/group/user/vinny_the_blind/chatters", GotUsers, 'jsonp')
+		loadJSON("https://tmi.twitch.tv/group/user/vinny_the_blind/chatters", GotUsers, "jsonp")
 	  } else {
 	    timeLeft--;
 	  }
