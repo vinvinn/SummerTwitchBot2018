@@ -2,6 +2,11 @@
 
 var socket;
 
+var relevantUser = {
+	username: "none",
+	amount: 0,
+	team: ""
+}
 var teamPoints = {
 	red: 0,
 	blue: 0,
@@ -16,11 +21,15 @@ function setup() {
 	StartInfluenceTicks();
 
 	socket.on("teamPointsUpdate",
-	function(points) {
-		teamPoints.red = points.red;
-		teamPoints.blue = points.blue;
-		teamPoints.green = points.green;
-		teamPoints.yellow = points.yellow;
+	function(data) {
+		teamPoints.red = data.teamPoints.red;
+		teamPoints.blue = data.teamPoints.blue;
+		teamPoints.green = data.teamPoints.green;
+		teamPoints.yellow = data.teamPoints.yellow;
+
+		relevantUser.username = data.username;
+		relevantUser.amount = data.amount;
+		relevantUser.team = data.team;
 	}
 );
 }
@@ -30,8 +39,9 @@ function draw() {
 	DrawLines();
 
 	textSize(24);
-	text(timeLeft.toString() + " until next influence", 20, height - 20);
+	text(timeLeft.toString() + " until next influence", 20, height - 24);
 	DisplayTeams();
+	LastVotingUserMessage(relevantUser.username, relevantUser.amount, relevantUser.team);
 }
 
 var timeLeft = 20;
@@ -49,6 +59,13 @@ function StartInfluenceTicks() {
 function GotUsers(data) {
 	socket.emit('influenceTick', data);
 	console.log(data);
+}
+
+function LastVotingUserMessage(username, amount, team) {
+	textAlign(CENTER);
+	fill("Black");
+	text(username + " voted " + amount + " for " + team + "!", width/2, (height / 2) + 20);
+	textAlign(LEFT);
 }
 
 function DisplayTeams() {

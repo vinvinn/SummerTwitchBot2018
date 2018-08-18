@@ -25,6 +25,7 @@ var mongo = require("mongodb").MongoClient();
 var objectID = require("mongodb").ObjectID();
 var assert = require("assert");
 var socket = require("socket.io");
+var fs = require("fs");
 
 var dbURL = "mongodb://localhost:27017/twitchbot";
 var mainSocket;
@@ -55,6 +56,13 @@ function NewConnection(socket) {
   }
 }
 
+/*
+  I keep my bots password OauthKey in a private file.
+  If you're code remained private you could simply replace
+  the oathKey variable with your own twitch oathKey.
+*/
+var oauthKey = fs.readFileSync("PrivateOauthKey.txt").toString();
+
 var options = {
   options: {
     debug: true
@@ -65,13 +73,17 @@ var options = {
   },
   identity: {
     username: "vinvinnBot",
-    password: "oauth:1wmlsd4v0ruv4co20le8ffne7g3ckg"
+    password: oauthKey,
   },
   channels: ["vinny_the_blind"]
 }
-
 var client = new tmi.client(options);
 client.connect();
+
+client.on("connected", function(address, port) {
+  UpdateTeamPoints();
+  client.action("vinny_the_blind", "Howdy ho neighborooni, it's me, " + options.identity.username +"!");
+})
 
 client.on("whisper", function (from, user, message, self) {
   if (self) return;
@@ -152,7 +164,7 @@ function VoteForTeam(user, message) {
       client.whisper(user.username, "Voting " + points + " for " + team +"!");
       TakeInfluence(user, points);
       GiveTeamPoints(team, points);
-      UpdateTeamPoints();
+      UpdateTeamPoints(user.username, points, team);
     }
   }, function(reason) {
     console.log("Promise log: Rejected for: " + reason);
@@ -190,41 +202,45 @@ function GiveTeamPoints(team, amount) {
       }
     );
   });
-  UpdateTeamPoints();
 }
 
-function UpdateTeamPoints(){
-  var teamPoints = {
-    red: 0,
-    blue: 0,
-    green: 0,
-    yellow: 0
+function UpdateTeamPoints(user, points, votedForTeam){
+  var data = {
+    teamPoints: {
+      red: 0,
+      blue: 0,
+      green: 0,
+      yellow: 0
+    },
+    username: user,
+    amount: points,
+    team: votedForTeam
   };
 
   Promise.all([
     GetTeamPoints("yellow").then(function(value) {
-      teamPoints.yellow = value;
+      data.teamPoints.yellow = value;
     }, function(reason) {
       console.log("Promise log: Rejected");
     }),
     GetTeamPoints("red").then(function(value) {
-      teamPoints.red = value;
+      data.teamPoints.red = value;
     }, function(reason) {
       console.log("Promise log: Rejected");
     }),
     GetTeamPoints("blue").then(function(value) {
-      teamPoints.blue = value;
+      data.teamPoints.blue = value;
     }, function(reason) {
       console.log("Promise log: Rejected");
     }),
     GetTeamPoints("green").then(function(value) {
-      teamPoints.green = value;
+      data.teamPoints.green = value;
     }, function(reason) {
       console.log("Promise log: Rejected");
     })
   ]).then(function() {//This function will run when all 4 previous promises have resolved
       //Properly emit team point values to the sketch
-      io.sockets.emit("teamPointsUpdate", teamPoints);
+      io.sockets.emit("teamPointsUpdate", data);
   })
   
 }
@@ -280,8 +296,3 @@ function Register(user, found) {
   } else client.whisper(user.username, "You've already registered!");
 
 }
-
-client.on("connected", function(address, port) {
-  UpdateTeamPoints();
-  client.action("vinny_the_blind", "Howdy ho neighborooni, it's me, " + options.identity.username +"!");
-})
