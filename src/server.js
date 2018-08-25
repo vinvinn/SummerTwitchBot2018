@@ -1,5 +1,5 @@
 
-/* proper comments, readme (markdown), lint(just fix long lines), oath code stuff, package.json, github webpage
+/* proper comments, readme (markdown), lint(just fix long lines), package.json, github webpage
   Author: Vincent Colano
   Github: https://github.com/vinvinn/SummerTwitchBot2018
   -----------------
@@ -17,6 +17,7 @@
   and see the team values change on the stream.
 */
 
+  /* The node packages this program uses */
 var tmi = require("tmi.js");
 var validator = require("validator");
 var sketchFile = require("./public/sketch.js");
@@ -28,12 +29,12 @@ var socket = require("socket.io");
 var fs = require("fs");
 
 var dbURL = "mongodb://localhost:27017/twitchbot";
-var mainSocket;
 
+  /* Initializing the server communication with the sketch */
+var mainSocket;
 var app = express();
 var server = app.listen(3000);
 app.use(express.static("public"));
-
 var io = socket(server);
 
 io.sockets.on("connection", NewConnection);
@@ -46,7 +47,7 @@ function NewConnection(socket) {
     console.log("--Influence Tick--");
     var newData = JSON.parse(JSON.stringify(data));
     currentViewers = newData.data.chatters.viewers;
-    //Combine mods+viewers in one array
+    //Combine mods and viewers in one array
     currentViewers.push.apply(currentViewers, newData.data.chatters.moderators);
     var numViewers = currentViewers.length;
 
@@ -85,9 +86,16 @@ client.on("connected", function(address, port) {
   client.action("vinny_the_blind", "Howdy ho neighborooni, it's me, " + options.identity.username +"!");
 })
 
+/* 
+  The client.on whisper and chat functions handle
+  user whispers and chats. Currently all outgoing
+  messages from teh bot are sent via whispers.
+*/
+
 client.on("whisper", function (from, user, message, self) {
   if (self) return;
 
+  //These are the messages users can PM the bot to "play"
   if (message === "register") SearchDBForUser(user, Register);
   else if (message === "status") UserStatusUpdate(user);
   else if (message.startsWith("vote ")) VoteForTeam(user, message);
@@ -104,6 +112,7 @@ client.on("chat", function(channel, user, message, self){
   else if (message === "register") SearchDBForUser(user, Register);
 })
 
+//Checks if the given user is already in the database
 function SearchDBForUser(user, func) {
   mongo.connect(dbURL, function(err, db) {
     assert.equal(null, err);
@@ -116,11 +125,13 @@ function SearchDBForUser(user, func) {
     });
   });
 }
+
 //This CallBack is used to ensure the desired function waits for the response from the db
 function SearchCallBack(found, data, func) {
   func(data, found);
 }
 
+//Allows users to check their income and influence
 function UserStatusUpdate(user) {
   mongo.connect(dbURL, function(err, db) {
     assert.equal(null, err);
@@ -133,6 +144,7 @@ function UserStatusUpdate(user) {
   });
 }
 
+//Handles user vote requests
 function VoteForTeam(user, message) {
   var team = message.substr(5);
   if (team.startsWith("red")) {
@@ -173,6 +185,7 @@ function VoteForTeam(user, message) {
   })
 }
 
+//Determines if a given user has enough poitns for the requested action
 async function SufficientInfluenceCheck(user, amount) {
   let db = await mongo.connect(dbURL);
     let data = await db.collection("users").findOne({"username":user.username});
@@ -181,6 +194,7 @@ async function SufficientInfluenceCheck(user, amount) {
     return false;
 }
 
+//Returns the current points of a team
 async function GetTeamPoints(team){
   let db = await mongo.connect(dbURL);
     let data = await db.collection("teams").findOne({"name":team});
@@ -188,6 +202,7 @@ async function GetTeamPoints(team){
     return data.points;
 }
 
+//Changes the point value of a team in the database
 function GiveTeamPoints(team, amount) {
   mongo.connect(dbURL, function(err, db) {
     assert.equal(null, err);
@@ -204,6 +219,7 @@ function GiveTeamPoints(team, amount) {
   });
 }
 
+//Updates the point values to the sketch
 function UpdateTeamPoints(user, points, votedForTeam){
   var data = {
     teamPoints: {
@@ -239,13 +255,14 @@ function UpdateTeamPoints(user, points, votedForTeam){
       console.log("Promise log: Rejected");
     })
   ]).then(function() {//This function will run when all 4 previous promises have resolved
-      //Properly emit team point values to the sketch
+      //Emit team point values to the sketch
       io.sockets.emit("teamPointsUpdate", data);
   })
   
 }
 
-function TakeInfluence(user, amount) {//Now functional as far as I can tell
+//Substracts a registered user influence (points), when they spend them
+function TakeInfluence(user, amount) {
   mongo.connect(dbURL, function(err, db) {
     assert.equal(null, err);
     db.collection("users").find({"username":user.username}).snapshot().forEach(
@@ -261,7 +278,8 @@ function TakeInfluence(user, amount) {//Now functional as far as I can tell
   });
 }
 
-function GiveInfluence(user) {//Now functional as far as I can tell
+//Gives a registered user influence (points)
+function GiveInfluence(user) {
   mongo.connect(dbURL, function(err, db) {
     assert.equal(null, err);
     db.collection("users").find({"username":user}).snapshot().forEach(
@@ -277,6 +295,7 @@ function GiveInfluence(user) {//Now functional as far as I can tell
   });
 }
 
+//Registers a user in the database
 function Register(user, found) {
   if (!found) {
     mongo.connect(dbURL, function(err, db) {
