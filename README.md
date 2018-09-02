@@ -8,4 +8,10 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-For development, this project uses [NodeJS](https://nodejs.org/en/) and [MongoDB](https://www.mongodb.com/)
+For development, this project requires the installation of [NodeJS](https://nodejs.org/en/) and [MongoDB](https://www.mongodb.com/). 
+
+#### Setting up NodeJS
+
+
+
+#### Setting up MongoDB database
