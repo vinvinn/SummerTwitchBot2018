@@ -8,10 +8,8 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-For development, this project requires the installation of [NodeJS](https://nodejs.org/en/) and [MongoDB](https://www.mongodb.com/). 
+For development, this project requires the installation of [NodeJS](https://nodejs.org/en/) and [MongoDB](https://www.mongodb.com/).  Testing can primarily be done in the twitch chat window, however to stream this live, the use of [OBS](https://obsproject.com/) or similar streaming software is required.
 
 #### Setting up NodeJS
 
-
-
-#### Setting up MongoDB database
+Use node package manager to install the required node modules automatically through the provided package.json file. [Here](https://docs.npmjs.com/getting-started/installing-npm-packages-locally) you can find a guide on doing that.
