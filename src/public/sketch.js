@@ -1,4 +1,13 @@
 
+/*
+  Author: Vincent Colano
+  Github: https://github.com/vinvinn/SummerTwitchBot2018
+  -----------------
+  sketch.js
+  -----------------
+  This script runs a p5.js sketch that is streamed to twitch.
+  
+*/
 
 var socket;
 
