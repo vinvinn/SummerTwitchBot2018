@@ -1,5 +1,5 @@
 
-/* proper comments, readme (markdown), lint(just fix long lines), package.json, github webpage
+/* 
   Author: Vincent Colano
   Github: https://github.com/vinvinn/SummerTwitchBot2018
   -----------------
