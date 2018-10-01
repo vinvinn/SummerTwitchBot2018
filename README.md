@@ -31,6 +31,7 @@ This project uses a local MongoDB database, [here](https://www.mongodb.com/downl
 #### Running the Server
 
 Once NodeJS, MongoDB, and the Twitch account(s) are set up, just edit the info in `server.js` to your credentials. This includes the database URL and the `identity` and `channels` fields in `options`.
+
 Now the serve is ready to be ran, while your database is running, navigate to `\src` in any CLI and use command `node server.js` to start our bot.
 
 [![Server](https://i.gyazo.com/fafeab15d0e9527c6d91013a7bbedf36.png)](https://gyazo.com/fafeab15d0e9527c6d91013a7bbedf36 "server")
@@ -52,6 +53,7 @@ You are now ready to create custom functionality for yout Twitch.tv bot!
 #### Helpful Documentation
 
 [tmi.js](https://docs.tmijs.org/) - Node module for the bot and it's interation with Twitch.
+
 [p5.js](https://p5js.org/reference/) - For writing the sketch.
 
 ### Author
