@@ -52,8 +52,8 @@ You are now ready to create custom functionality for yout Twitch.tv bot!
 
 #### Helpful Documentation
 
-+[tmi.js](https://docs.tmijs.org/) - Node module for the bot and it's interation with Twitch.
-+[p5.js](https://p5js.org/reference/) - For writing the sketch.
++ [tmi.js](https://docs.tmijs.org/) - Node module for the bot and it's interation with Twitch.
++ [p5.js](https://p5js.org/reference/) - For writing the sketch.
 
 ### Author
 
