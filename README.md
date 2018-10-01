@@ -44,3 +44,16 @@ The bot should now be active in the designated stream(s), and is ready to be int
 While the server is running, open a tab in any browser and use the URL `localhost:3000` to view the sketch. Once this is open, you can use a Window Capture in OBS to stream this to the viewers.
 
 [![Sketch](https://i.gyazo.com/ba25678fa112e250ac4ab7f6072cf99c.png)](https://gyazo.com/ba25678fa112e250ac4ab7f6072cf99c "sketch")
+
+## Development
+
+You are now ready to create custom functionality for yout Twitch.tv bot! 
+
+#### Helpful Documentation
+
+[tmi.js](https://docs.tmijs.org/) - Node module for the bot and it's interation with Twitch.
+[p5.js](https://p5js.org/reference/) - For writing the sketch.
+
+### Author
+
+**Vincent Colano** - [LinkedIn](https://www.linkedin.com/in/vincent-colano-490a6b144/) - [Github](https://github.com/vinvinn)
