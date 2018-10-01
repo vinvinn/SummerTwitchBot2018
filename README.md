@@ -35,9 +35,12 @@ Now the serve is ready to be ran, while your database is running, navigate to `\
 
 [![Server](https://i.gyazo.com/fafeab15d0e9527c6d91013a7bbedf36.png)](https://gyazo.com/fafeab15d0e9527c6d91013a7bbedf36 "server")
 
+The bot should now be active in the designated stream(s), and is ready to be interacted with.
+
+[![Stream](https://i.gyazo.com/40676d4520f904a96cbe2dc57a38cc13.png)](https://gyazo.com/40676d4520f904a96cbe2dc57a38cc13 "Bot connected")
+
 #### The Sketch
 
 While the server is running, open a tab in any browser and use the URL `localhost:3000` to view the sketch. Once this is open, you can use a Window Capture in OBS to stream this to the viewers.
 
 [![Sketch](https://i.gyazo.com/ba25678fa112e250ac4ab7f6072cf99c.png)](https://gyazo.com/ba25678fa112e250ac4ab7f6072cf99c "sketch")
-
